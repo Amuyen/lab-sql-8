@@ -70,6 +70,8 @@ order by last_rented  desc) as t
 join rental re
 on t.inventory_id=re.inventory_id and t.last_rented=re.rental_date;
 
+-- Get all pairs of actors that worked together.
+
 select concat(a1.first_name,' ',a1.last_name) as Actor1, concat(a2.first_name,' ',a2.last_name) as Actor2, count(distinct fa.film_id) as 'Movies Collaborated' from actor a1
 join film_actor fa
 on a1.actor_id=fa.actor_id
@@ -81,13 +83,42 @@ group by Actor1, Actor2;
 
 select count(*) from actor;
 
-/*Get all pairs of actors that worked together.
+/*
 
-select a1.c
 Bonus:
 These questions are tricky, you can wait until after Monday's lesson to use new techniques to answer them!
 
 Get all pairs of customers that have rented the same film more than 3 times.
 For each film, list actor that has acted in more films.
 
+*/
 
+select count(c1.Title) as 'Same movies rented', concat(c1.First_name,' ',c1.last_name) as 'Customer 1', 
+concat(c2.First_name,' ',c2.last_name) as 'Customer 2'from 
+(select f.title, c.First_name, c.last_name, c.customer_id from film f
+join inventory i1
+on f.film_id=i1.film_id
+join rental r
+on i1.inventory_id=r.inventory_id
+join customer c
+on r.customer_id=c.customer_id) c1
+join (select f.title, c.First_name, c.last_name, c.customer_id  from film f
+join inventory i1
+on f.film_id=i1.film_id
+join rental r
+on i1.inventory_id=r.inventory_id
+join customer c
+on r.customer_id=c.customer_id) c2
+on c1.customer_id!=c2.customer_id and c1.title=c2.title
+group by c1.customer_id,c2.customer_id 
+having count(c1.Title)  > 3
+order by count(c1.Title)  desc;
+
+select f.Title, concat(a.first_name,' ',a.last_name) as 'Actor', Total_Movies from film f
+join film_actor ai
+on f.film_id=ai.film_id
+join (select count(film_id)-1 as Total_movies, actor_id from film_actor group by actor_id having count(film_id) > 1) mov
+on ai.actor_id=mov.actor_id
+join actor a
+on mov.actor_id=a.actor_id
+order by Title asc;  
